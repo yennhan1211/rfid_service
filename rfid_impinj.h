@@ -33,6 +33,7 @@ class epc_tag : public QObject
     Q_OBJECT
 public:
     explicit epc_tag(Qstring, int, int, int, char);
+
 };
 
 class rfid_Impinj : public QObject
@@ -55,6 +56,14 @@ private:
     QNetworkSession *networkSession;
 
     bool connectStatus;
+    QByteArray buffHolder;
+
+    // Decode variable
+    qint32 state;
+    quint8 checkSum;
+    quint8 length;
+    quint8 addr;
+    quint8 cmd;
 
 signals:
     void tagFound();
