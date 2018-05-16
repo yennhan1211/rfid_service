@@ -20,6 +20,8 @@ rfid_Impinj::rfid_Impinj(QObject *parent) :
     connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(connectionStatus()));
 //    connect(tcpSocket, SIGNAL())
 
+
+//    sendTest();
 }
 
 bool rfid_Impinj::connectReader(QString host, quint16 port)
@@ -44,6 +46,15 @@ int rfid_Impinj::sendCommand(command cmd)
         return 0;
     }
     return -1;
+}
+
+void rfid_Impinj::sendTest()
+{
+    char tmp[5] = {
+        0xa0,0x03,0x01,0x72,0xea
+    };
+    qDebug() << "Write test";
+    tcpSocket->write(tmp, 5);
 }
 
 void rfid_Impinj::processBuf()
@@ -72,6 +83,8 @@ void rfid_Impinj::processBuf()
         case 1:
             length = buffHolder[i]; state++;
             checkSum += length;
+            // create buffer to hold data
+            cmdData = new quint8[length - 3];
             break;
         case 2:
             addr = buffHolder[i]; state++;
@@ -80,14 +93,44 @@ void rfid_Impinj::processBuf()
             break;
         case 3:
             cmd = buffHolder[i];
+            lengthCount++;
             checkSum += cmd;
             state++;
             break;
         case 4:
-            if(lengthCount == length) { // 1 byte
-
+            if(lengthCount == (length)) {
+                state++; // end of data
+            } else {
+                cmdData[lengthCount - 2] = buffHolder[i];
+                checkSum += buffHolder[i];
+                lengthCount++;
             }
+            break;
+        case 5:
+            // calc checksum
+            checkSum = (~checkSum) + 1;
+            if(checkSum == buffHolder[i]) {
+                // emit cmd data is found
+                qDebug() << "Command data is found";
 
+            } else {
+                qDebug() << "Wrong checksum"   ;
+            }
+            // reset state
+            state = 0;
+            checkSum = 0;
+            lengthCount = 0;
+            length = 0;
+            addr = 0;
+            cmd = 0;
+            if (cmdData != NULL) {
+                delete cmdData;
+                cmdData = NULL;
+            }
+            break;
+        default:
+            qDebug() << "Shouldn't be here";
+            break;
         }
     }
 }
@@ -144,7 +187,7 @@ command command::buildFromBuf(QByteArray)
 }
 
 
-epc_tag::epc_tag(Qstring, int, int, int, char)
+epc_tag::epc_tag(QString, int, int, int, char)
 {
 
 }

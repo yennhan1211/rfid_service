@@ -22,6 +22,10 @@ private slots:
     void on_btnConDis_clicked();
     void on_connectStatusChanged(bool);
 
+    void on_btnConDis_2_clicked();
+
+    void on_btnConDis_3_clicked();
+
 private:
     Ui::MainWindow *ui;
 };

@@ -22,9 +22,11 @@ public:
 
 private:
     quint8 length;
+    quint8 lengthCount;
     quint8 addr;
     quint8 cmd;
     quint8 checksum;
+    quint8 * cmdData;
     QByteArray data;
 };
 
@@ -32,7 +34,7 @@ class epc_tag : public QObject
 {
     Q_OBJECT
 public:
-    explicit epc_tag(Qstring, int, int, int, char);
+    explicit epc_tag(QString, int, int, int, char);
 
 };
 
@@ -48,7 +50,7 @@ public:
     int setOutputPower(int);
 
     int sendCommand(command);
-
+    void sendTest();
 private:
     QTcpSocket * tcpSocket;
     QDataStream in;
@@ -62,8 +64,12 @@ private:
     qint32 state;
     quint8 checkSum;
     quint8 length;
+    quint8 lengthCount;
+    quint8 * cmdData;
     quint8 addr;
     quint8 cmd;
+
+
 
 signals:
     void tagFound();

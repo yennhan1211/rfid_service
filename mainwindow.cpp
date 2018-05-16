@@ -42,3 +42,13 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
         ui->btnConDis->setText("Connect");
     }
 }
+
+void MainWindow::on_btnConDis_2_clicked()
+{
+    myReader->sendTest();
+}
+
+void MainWindow::on_btnConDis_3_clicked()
+{
+
+}
