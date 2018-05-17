@@ -77,7 +77,9 @@ signals:
     void versionUpdated(QString);
     void tempUpdated(QString);
     void error(QString);
+    void cmdDataArrival(quint8, quint8, quint8, quint8*);
 public slots:
+    void processDataArrival(quint8, quint8, quint8, quint8*);
     void processBuf();
     void processError(QAbstractSocket::SocketError socketError);
     void connectionStatus();

@@ -18,6 +18,7 @@ rfid_Impinj::rfid_Impinj(QObject *parent) :
     connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(processError(QAbstractSocket::SocketError)));
     connect(tcpSocket, SIGNAL(connected()), this, SLOT(connectionStatus()));
     connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(connectionStatus()));
+    connect(this, SIGNAL(cmdDataArrival(quint8,quint8,quint8,quint8*)), this, SLOT(processDataArrival(quint8,quint8,quint8,quint8*)));
 //    connect(tcpSocket, SIGNAL())
 
 
@@ -57,6 +58,15 @@ void rfid_Impinj::sendTest()
     tcpSocket->write(tmp, 5);
 }
 
+void rfid_Impinj::processDataArrival(quint8 addr, quint8 cmd, quint8 len, quint8 * data){
+    qDebug() << "Addr: " << addr;
+    qDebug() << "Cmd: " << cmd;
+    qDebug() << "Length: " << len;
+    if(data != NULL) {
+        delete data;
+    }
+}
+
 void rfid_Impinj::processBuf()
 {
     qint32 bytes = tcpSocket->bytesAvailable();
@@ -72,10 +82,12 @@ void rfid_Impinj::processBuf()
 
     buffHolder.append(buffRead, bytes);
 
-    for(int i = 0; i < buffHolder.length(); i++){
+    int i = 0;
+
+    for(i = 0; i < buffHolder.length(); i++){
         switch(state){
         case 0:
-            if(buffHolder[i] == (unsigned char)160) {
+            if(buffHolder[i] == (quint8)160) {
                 checkSum += buffHolder[i];
                 state++; // header 160 (A0)
             }
@@ -98,23 +110,24 @@ void rfid_Impinj::processBuf()
             state++;
             break;
         case 4:
-            if(lengthCount == (length)) {
-                state++; // end of data
-            } else {
                 cmdData[lengthCount - 2] = buffHolder[i];
                 checkSum += buffHolder[i];
                 lengthCount++;
-            }
+                if(lengthCount == (length -1)) {
+                    state++; // end of data
+                }
             break;
         case 5:
             // calc checksum
             checkSum = (~checkSum) + 1;
-            if(checkSum == buffHolder[i]) {
+            if((quint8)checkSum == (quint8)buffHolder[i]) {
                 // emit cmd data is found
                 qDebug() << "Command data is found";
-
+                quint8 *tmpData = new quint8[length - 3];
+                memcpy(tmpData, cmdData, length -3);
+                emit cmdDataArrival(addr, cmd, length -3, tmpData);
             } else {
-                qDebug() << "Wrong checksum"   ;
+                qDebug() << "Wrong checksum " << checkSum << "-" << (quint8)buffHolder[i];
             }
             // reset state
             state = 0;
@@ -133,6 +146,8 @@ void rfid_Impinj::processBuf()
             break;
         }
     }
+
+    buffHolder.remove(0, i);
 }
 
 void rfid_Impinj::processError(QAbstractSocket::SocketError socketError)
