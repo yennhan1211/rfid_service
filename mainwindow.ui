@@ -18,19 +18,19 @@
     <property name="geometry">
      <rect>
       <x>810</x>
-      <y>0</y>
+      <y>3</y>
       <width>401</width>
-      <height>51</height>
+      <height>231</height>
      </rect>
     </property>
     <property name="title">
-     <string>RF output power</string>
+     <string>RF config</string>
     </property>
-    <widget class="QLineEdit" name="leHost_2">
+    <widget class="QLineEdit" name="leAnt1Power">
      <property name="geometry">
       <rect>
-       <x>20</x>
-       <y>20</y>
+       <x>70</x>
+       <y>70</y>
        <width>150</width>
        <height>20</height>
       </rect>
@@ -39,21 +39,21 @@
     <widget class="QPushButton" name="btnGetOutputPower">
      <property name="geometry">
       <rect>
-       <x>200</x>
-       <y>16</y>
-       <width>70</width>
+       <x>10</x>
+       <y>20</y>
+       <width>91</width>
        <height>25</height>
       </rect>
      </property>
      <property name="text">
-      <string>GET</string>
+      <string>Get Info</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnSetOutputPower">
      <property name="geometry">
       <rect>
-       <x>310</x>
-       <y>15</y>
+       <x>235</x>
+       <y>67</y>
        <width>70</width>
        <height>25</height>
       </rect>
@@ -62,12 +62,211 @@
       <string>SET</string>
      </property>
     </widget>
+    <widget class="QLabel" name="lbVersion_2">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>45</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Output power</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_3">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>70</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ANT 1</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_4">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>110</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ANT 2</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_5">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>150</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ANT 3</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_6">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>190</y>
+       <width>51</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>ANT 4</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leAnt2Power">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>110</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leAnt3Power">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>150</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leAnt4Power">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>190</y>
+       <width>150</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chbAnt1">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>70</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chbAnt2">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>111</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chbAnt3">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>153</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="chbAnt4">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>191</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Off</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSetOutputPower_2">
+     <property name="geometry">
+      <rect>
+       <x>238</x>
+       <y>149</y>
+       <width>70</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SET</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSetOutputPower_3">
+     <property name="geometry">
+      <rect>
+       <x>238</x>
+       <y>108</y>
+       <width>70</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SET</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="btnSetOutputPower_4">
+     <property name="geometry">
+      <rect>
+       <x>238</x>
+       <y>188</y>
+       <width>70</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SET</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_7">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>40</y>
+       <width>81</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Working status</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
+      <y>3</y>
       <width>441</width>
       <height>51</height>
      </rect>
@@ -79,7 +278,7 @@
      <property name="geometry">
       <rect>
        <x>340</x>
-       <y>20</y>
+       <y>18</y>
        <width>70</width>
        <height>25</height>
       </rect>
@@ -105,7 +304,7 @@
      <property name="geometry">
       <rect>
        <x>60</x>
-       <y>20</y>
+       <y>23</y>
        <width>150</width>
        <height>20</height>
       </rect>
@@ -118,7 +317,7 @@
      <property name="geometry">
       <rect>
        <x>229</x>
-       <y>20</y>
+       <y>22</y>
        <width>30</width>
        <height>20</height>
       </rect>
@@ -130,8 +329,8 @@
     <widget class="QLineEdit" name="lePort">
      <property name="geometry">
       <rect>
-       <x>260</x>
-       <y>20</y>
+       <x>267</x>
+       <y>23</y>
        <width>50</width>
        <height>20</height>
       </rect>
@@ -145,8 +344,8 @@
     <property name="geometry">
      <rect>
       <x>460</x>
-      <y>10</y>
-      <width>301</width>
+      <y>3</y>
+      <width>341</width>
       <height>51</height>
      </rect>
     </property>
@@ -190,11 +389,48 @@
      </rect>
     </property>
    </widget>
-   <zorder>groupBox</zorder>
-   <zorder>groupBox_2</zorder>
-   <zorder>groupBox_3</zorder>
-   <zorder>tableView</zorder>
-   <zorder>lbVersion</zorder>
+   <widget class="QPushButton" name="btnStartTime">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>70</y>
+      <width>131</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>START</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="lbStartTime">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>69</y>
+      <width>631</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid rgb(60, 60, 60);
+qproperty-alignment: AlignCenter;</string>
+    </property>
+    <property name="text">
+     <string>00:00:00,000</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

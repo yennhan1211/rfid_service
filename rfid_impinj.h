@@ -5,6 +5,7 @@
 #include <QDataStream>
 #include <QTcpSocket>
 #include <QNetworkSession>
+#include <QNetworkProxy>
 
 class command
 {
@@ -134,6 +135,7 @@ private:
     QDataStream in;
 
     QNetworkSession *networkSession;
+    QNetworkProxy proxy;
 
     bool connectStatus;
     QByteArray buffHolder;
@@ -154,7 +156,7 @@ private:
 
 
 signals:
-    void tagFound();
+    void tagFound(epc_tag*);
     void connectStatusChanged(bool);
     void versionUpdated(QString);
     void tempUpdated(QString);

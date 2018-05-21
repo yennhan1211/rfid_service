@@ -26,7 +26,14 @@ rfid_Impinj::rfid_Impinj(QObject *parent) :
     connect(this, SIGNAL(cmdDataArrival(quint8,quint8,quint8,quint8*)), this, SLOT(processDataArrival(quint8,quint8,quint8,quint8*)));
 //    connect(tcpSocket, SIGNAL())
 
-
+//    proxy.setType(QNetworkProxy::HttpProxy);
+//    proxy.setHostName("fsoft-proxy");
+//    proxy.setPort(8080);
+//    proxy.setUser("anhnn28");
+//    proxy.setPassword("Congtubot!2");
+//    tcpSocket->setProxy(proxy);
+//    QNetworkProxy::setApplicationProxy(proxy);
+//    tcpSocket->setProxy(&proxy);
 //    sendTest();
 }
 
@@ -87,6 +94,9 @@ int rfid_Impinj::sendCommand(quint8 *arr, int len)
     }
 
     cks = (~cks) + 1;
+
+    // for debug
+
 
     if(connectStatus){
         tcpSocket->write((char*)arr, len);
@@ -196,6 +206,7 @@ void rfid_Impinj::processDataArrival(quint8 addr, quint8 cmd, quint8 len, quint8
         } else {
             epc_tag *tag = new epc_tag(data, len);
             qDebug() << "Tag found " << tag->toString();
+            emit tagFound(tag);
         }
         break;
     default:

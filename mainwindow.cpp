@@ -24,18 +24,28 @@ MainWindow::MainWindow(QWidget *parent) :
     requestTimer.setInterval(1000);
     requestTimer.setSingleShot(false);
 
-    myReader = new rfid_Impinj();
+
 //    rfid_thread = new QThread();
+
+    myReader = new rfid_Impinj(parent);
 
 //    myReader->moveToThread(rfid_thread);
 
+    connect(ui->btnStartTime, SIGNAL(clicked()),this, SLOT(on_btnStartTimer()));
     connect(myReader, SIGNAL(versionUpdated(QString)), ui->lbVersion, SLOT(setText(QString)));
     connect(myReader, SIGNAL(tempUpdated(QString)), ui->lbTemp, SLOT(setText(QString)));
     connect(myReader, SIGNAL(connectStatusChanged(bool)), this, SLOT(on_connectStatusChanged(bool)));
 
+    connect(myReader, SIGNAL(tagFound(epc_tag*)), this, SLOT(tagFound(epc_tag*)));
+
     connect(&requestTimer, SIGNAL(timeout()), this, SLOT(requestTimerTimeOut()));
 
-//    requestTimer.start();
+    mRunning = false;
+
+
+//    rfid_thread->start();
+
+    enableUI(false);
 }
 
 MainWindow::~MainWindow()
@@ -76,10 +86,13 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
         ui->statusBar->showMessage("Connected");
         myReader->getVersion();
 //        myReader->getTemp();
+        enableUI(true);
     } else {
         qDebug() << "Disconnected";
         ui->statusBar->showMessage("Disconnected");
         ui->btnConDis->setText("Connect");
+
+        enableUI(false);
     }
 }
 
@@ -93,9 +106,70 @@ void MainWindow::on_btnSetOutputPower_clicked()
     myReader->sendTest();
 }
 
+void MainWindow::on_btnStartTimer()
+{
+    if(!mRunning){
+        mStartTime = QDateTime::currentDateTime();
+        mRunning = true;
+        ui->btnStartTime->setText("STOP");
+        qDebug() <<"Start counting";
+        timerid = startTimer(0);
+        requestTimer.start();
+    } else {
+        killTimer(timerid);
+        ui->btnStartTime->setText("START");
+        mRunning = false;
+        requestTimer.stop();
+    }
+}
+
 void MainWindow::requestTimerTimeOut()
 {
-    if(myReader->getConnectStatus()){
+    qDebug() << "On requestTimerTimeOut";
+    if(mRunning && myReader->getConnectStatus()){
         myReader->getTemp();
+    }
+}
+
+void MainWindow::tagFound(epc_tag * tag)
+{
+    if(tag != NULL){
+        delete tag;
+    }
+}
+
+void MainWindow::enableUI(bool enable)
+{
+    ui->btnStartTime->setEnabled(enable);
+    ui->chbAnt1->setEnabled(enable);
+    ui->chbAnt2->setEnabled(enable);
+    ui->chbAnt3->setEnabled(enable);
+    ui->chbAnt4->setEnabled(enable);
+
+    ui->btnGetOutputPower->setEnabled(enable);
+    ui->btnSetOutputPower->setEnabled(enable);
+    ui->btnSetOutputPower_2->setEnabled(enable);
+    ui->btnSetOutputPower_3->setEnabled(enable);
+    ui->btnSetOutputPower_4->setEnabled(enable);
+}
+
+void MainWindow::timerEvent(QTimerEvent *e)
+{
+    if(timerid != e->timerId()){
+        timerid = e->timerId();
+    }
+    if(mRunning){
+        mSessionTime = mStartTime.msecsTo(QDateTime::currentDateTime());
+        qint64 time = mSessionTime;
+        unsigned int h = time / 1000 / 60 / 60;
+        unsigned int m = (time / 1000 / 60) - (h * 60);
+        unsigned int s = (time / 1000) - (m * 60);
+        unsigned int ms = time - (s + ((m + (h * 60))* 60)) * 1000;
+        const QString diff = QString("%1:%2:%3,%4")
+                                .arg(h,  2, 10, QChar('0'))
+                                .arg(m,  2, 10, QChar('0'))
+                                .arg(s,  2, 10, QChar('0'))
+                                .arg(ms, 3, 10, QChar('0'));
+        ui->lbStartTime->setText(diff);
     }
 }
