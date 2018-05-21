@@ -34,8 +34,70 @@ class epc_tag : public QObject
 {
     Q_OBJECT
 public:
-    explicit epc_tag(QString, int, int, int, char);
+    explicit epc_tag(quint8 *buff, quint8 len);
 
+    quint8 pc[2];
+    quint8 rssi;
+    quint8 freq;
+    quint8 ant_id;
+    quint8 * epc;
+    quint8 epc_len;
+
+    QString toString();
+
+    bool friend operator ==(const epc_tag &tag1, const epc_tag &tag2) {
+        for(int i = 0; i < 2; i++) {
+            if(tag1.pc[i] != tag2.pc[i]){
+                return false;
+            }
+        }
+
+        if(tag1.epc_len != tag2.epc_len){
+            return false;
+        }
+
+        for(int i = 0; i < tag1.epc_len; i++) {
+            if(tag1.epc[i] != tag2.epc[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+
+//    bool friend operator !=(const epc_tag &tag1, const epc_tag &tag2);
+//    friend std::ostream& operator << (std::ostream &out, const epc_tag &tag);
+};
+
+//bool epc_tag::operator ==(const epc_tag &tag2)
+//{
+//    for(int i = 0; i < 2; i++) {
+//        if(this->pc[i] != tag2.pc[i]){
+//            return false;
+//        }
+//    }
+//    for(int i = 0; i < epc_len; i++) {
+//        if(this->epc[i] != tag2.epc[i]){
+//            return false;
+//        }
+//    }
+//    return true;
+//}
+
+//bool epc_tag::operator !=(const epc_tag &tag1, const epc_tag &tag2)
+//{
+//    return !(tag1 == tag2);
+//}
+
+//std::ostream &epc_tag::operator <<(std::ostream &out, const epc_tag &tag)
+//{
+//    out << tag.toString();
+//    return out;
+//}
+
+class antenna : public QObject{
+    Q_OBJECT
+public:
+    explicit antenna(quint8 antId, quint8 rssi,quint8 frqAnt);
 };
 
 class rfid_Impinj : public QObject
@@ -47,10 +109,26 @@ public:
     bool disconnectReader();
 
     int getVersion();
+    int getTemp();
     int setOutputPower(int);
+    int getOutputPower(int);
+
+    void setIntervalSwitchAnt(int);
+    int getIntervalSwitchAnt();
+
+    void setRepeatRound(int);
+    int getRepeatRound();
 
     int sendCommand(command);
+    int sendCommand(quint8 *arr, int len);
     void sendTest();
+
+    QString rssiToString(quint8);
+    QString freqToString(quint8);
+    int rssiToDbm(quint8);
+    float freqToHz(quint8);
+
+    bool getConnectStatus();
 private:
     QTcpSocket * tcpSocket;
     QDataStream in;
@@ -59,6 +137,10 @@ private:
 
     bool connectStatus;
     QByteArray buffHolder;
+
+    // Fast switch ant attribute
+    int interval;
+    int repeat;
 
     // Decode variable
     qint32 state;

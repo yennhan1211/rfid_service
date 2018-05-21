@@ -17,8 +17,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>460</x>
-      <y>10</y>
+      <x>810</x>
+      <y>0</y>
       <width>401</width>
       <height>51</height>
      </rect>
@@ -36,7 +36,7 @@
       </rect>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnConDis_2">
+    <widget class="QPushButton" name="btnGetOutputPower">
      <property name="geometry">
       <rect>
        <x>200</x>
@@ -49,11 +49,11 @@
       <string>GET</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="btnConDis_3">
+    <widget class="QPushButton" name="btnSetOutputPower">
      <property name="geometry">
       <rect>
        <x>310</x>
-       <y>10</y>
+       <y>15</y>
        <width>70</width>
        <height>25</height>
       </rect>
@@ -111,7 +111,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>127.0.0.1</string>
+      <string>89.164.11.70</string>
      </property>
     </widget>
     <widget class="QLabel" name="lbPort">
@@ -144,7 +144,7 @@
    <widget class="QGroupBox" name="groupBox_3">
     <property name="geometry">
      <rect>
-      <x>890</x>
+      <x>460</x>
       <y>10</y>
       <width>301</width>
       <height>51</height>
@@ -180,6 +180,21 @@
      </property>
     </widget>
    </widget>
+   <widget class="QTableView" name="tableView">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>240</y>
+      <width>1201</width>
+      <height>411</height>
+     </rect>
+    </property>
+   </widget>
+   <zorder>groupBox</zorder>
+   <zorder>groupBox_2</zorder>
+   <zorder>groupBox_3</zorder>
+   <zorder>tableView</zorder>
+   <zorder>lbVersion</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

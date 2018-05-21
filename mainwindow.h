@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QThread>
+#include <QTimer>
 #include <rfid_impinj.h>
 
 namespace Ui {
@@ -22,12 +24,16 @@ private slots:
     void on_btnConDis_clicked();
     void on_connectStatusChanged(bool);
 
-    void on_btnConDis_2_clicked();
+    void on_btnGetOutputPower_clicked();
 
-    void on_btnConDis_3_clicked();
+    void on_btnSetOutputPower_clicked();
+
+    void requestTimerTimeOut();
 
 private:
     Ui::MainWindow *ui;
+    QThread *rfid_thread;
+    QTimer requestTimer;
 };
 
 #endif // MAINWINDOW_H

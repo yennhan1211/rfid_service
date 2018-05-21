@@ -17,6 +17,7 @@ SOURCES += main.cpp\
     rfid_impinj.cpp
 
 HEADERS  += mainwindow.h \
-    rfid_impinj.h
+    rfid_impinj.h \
+    rfid_impinj_cmd.h
 
 FORMS    += mainwindow.ui
