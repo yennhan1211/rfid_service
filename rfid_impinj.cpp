@@ -76,6 +76,26 @@ int rfid_Impinj::getTemp()
     return sendCommand(cmdTmp, 4);
 }
 
+int rfid_Impinj::getRegionFreq()
+{
+    qDebug() << "getRegionFreq";
+    quint8 cmdTmp[4] = {
+        0xa0,0x03,0x01,0x79
+    };
+
+    return sendCommand(cmdTmp, 4);
+}
+
+void rfid_Impinj::setIntervalSwitchAnt(int i)
+{
+    interval = i;
+}
+
+int rfid_Impinj::getIntervalSwitchAnt()
+{
+    return interval;
+}
+
 int rfid_Impinj::sendCommand(command cmd)
 {
     if(connectStatus){
@@ -243,7 +263,7 @@ void rfid_Impinj::processBuf()
     for(i = 0; i < buffHolder.length(); i++){
         switch(state){
         case 0:
-            if(buffHolder[i] == (quint8)160) {
+            if((quint8)buffHolder[i] == (quint8)160) {
                 checkSum += buffHolder[i];
                 state++; // header 160 (A0)
                 qDebug() << "Found header";
@@ -373,9 +393,59 @@ epc_tag::epc_tag(quint8 *buff, quint8 len)
 
     epc = new quint8[len - 4];
 
+    QString tmpStr;
     for (int i = 0; i < (len -4); ++i) {
         epc[i] = buff[i + 3];
+        tmpStr.sprintf("%x", epc[i]);
+        keyID.append(tmpStr);
     }
+}
+
+epc_tag::epc_tag(const epc_tag &tag)
+{
+    qDebug() << "epc_tag copy constuctor" ;
+    freq = tag.freq;
+    ant_id = tag.ant_id;
+
+    pc[0] = tag.pc[0];
+    pc[1] = tag.pc[1];
+
+    epc = new quint8[tag.epc_len];
+
+    for (int i = 0; i < (tag.epc_len); ++i) {
+        epc[i] = tag.epc[i + 3];
+    }
+
+    keyID = tag.keyID;
+}
+
+epc_tag::~epc_tag()
+{
+    delete epc;
+}
+
+void epc_tag::updateAntennaInfo(epc_tag& tag){
+    Q_UNUSED(tag);
+}
+
+epc_tag &epc_tag::operator=(const epc_tag &tag)
+{
+    qDebug() << "epc_tag overload asignmment operator" ;
+    freq = tag.freq;
+    ant_id = tag.ant_id;
+
+    pc[0] = tag.pc[0];
+    pc[1] = tag.pc[1];
+
+    epc = new quint8[tag.epc_len];
+
+    for (int i = 0; i < (tag.epc_len); ++i) {
+        epc[i] = tag.epc[i + 3];
+    }
+
+    keyID = tag.keyID;
+
+    return *this;
 }
 
 QString epc_tag::toString()
@@ -389,4 +459,9 @@ QString epc_tag::toString()
     }
 
     return ret;
+}
+
+QString epc_tag::getKeyID()
+{
+    return keyID;
 }

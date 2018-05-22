@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //setup tableview
     QStandardItemModel *model = new QStandardItemModel(1,4, this);
+
     model->setHorizontalHeaderItem(0, new QStandardItem(QString("PC")));
     model->setHorizontalHeaderItem(1, new QStandardItem(QString("EPC")));
     model->setHorizontalHeaderItem(2, new QStandardItem(QString("RSSI")));
@@ -32,6 +33,11 @@ MainWindow::MainWindow(QWidget *parent) :
 //    myReader->moveToThread(rfid_thread);
 
     connect(ui->btnStartTime, SIGNAL(clicked()),this, SLOT(on_btnStartTimer()));
+    connect(ui->chbAnt1, SIGNAL(clicked(bool)), this, SLOT(checkBoxHandler(bool)));
+    connect(ui->chbAnt2, SIGNAL(clicked(bool)), this, SLOT(checkBoxHandler(bool)));
+    connect(ui->chbAnt3, SIGNAL(clicked(bool)), this, SLOT(checkBoxHandler(bool)));
+    connect(ui->chbAnt4, SIGNAL(clicked(bool)), this, SLOT(checkBoxHandler(bool)));
+
     connect(myReader, SIGNAL(versionUpdated(QString)), ui->lbVersion, SLOT(setText(QString)));
     connect(myReader, SIGNAL(tempUpdated(QString)), ui->lbTemp, SLOT(setText(QString)));
     connect(myReader, SIGNAL(connectStatusChanged(bool)), this, SLOT(on_connectStatusChanged(bool)));
@@ -72,6 +78,7 @@ void MainWindow::on_btnConDis_clicked()
         qDebug() << "Connect";
         myReader->connectReader(ui->leHost->text(), ui->lePort->text().toInt());
         ui->statusBar->showMessage("Connecting ...");
+        ui->btnConDis->setEnabled(false);
     } else {
         qDebug() << "Disconnect";
         myReader->disconnectReader();
@@ -80,6 +87,7 @@ void MainWindow::on_btnConDis_clicked()
 
 void MainWindow::on_connectStatusChanged(bool isConnected)
 {
+    ui->btnConDis->setEnabled(true);
     if(isConnected){
         qDebug() << "Connected";
         ui->btnConDis->setText("Disconnect");
@@ -91,7 +99,6 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
         qDebug() << "Disconnected";
         ui->statusBar->showMessage("Disconnected");
         ui->btnConDis->setText("Connect");
-
         enableUI(false);
     }
 }
@@ -110,6 +117,7 @@ void MainWindow::on_btnStartTimer()
 {
     if(!mRunning){
         mStartTime = QDateTime::currentDateTime();
+        mStartCaptureTime = QDateTime::currentDateTime();
         mRunning = true;
         ui->btnStartTime->setText("STOP");
         qDebug() <<"Start counting";
@@ -131,8 +139,41 @@ void MainWindow::requestTimerTimeOut()
     }
 }
 
+void MainWindow::checkBoxHandler(bool isChecked)
+{
+    qDebug() << "Checked" << isChecked;
+    QCheckBox *chk = (QCheckBox*)sender();
+    if(isChecked){
+        chk->setText("On");
+    } else {
+        chk->setText("Off");
+    }
+    if(chk == ui->chbAnt1){
+        qDebug() << "chbAnt1";
+    } else if(chk == ui->chbAnt2){
+        qDebug() << "chbAnt2";
+    } else if(chk == ui->chbAnt3){
+        qDebug() << "chbAnt3";
+    } else if(chk == ui->chbAnt4){
+        qDebug() << "chbAnt4";
+    }
+
+}
+
 void MainWindow::tagFound(epc_tag * tag)
 {
+  // check tag is exist or not
+    QHash<QString, epc_tag>::const_iterator i = tagsHolder.find(tag->getKeyID());
+
+    if (i == tagsHolder.end()) // not exist
+    {
+      tagsHolder.insert(tag->getKeyID(), *(tag));
+    } else {
+      tagsHolder[tag->getKeyID()].updateAntennaInfo(*(tag));
+    }
+
+    // emit reorder table
+
     if(tag != NULL){
         delete tag;
     }
@@ -141,10 +182,10 @@ void MainWindow::tagFound(epc_tag * tag)
 void MainWindow::enableUI(bool enable)
 {
     ui->btnStartTime->setEnabled(enable);
-    ui->chbAnt1->setEnabled(enable);
-    ui->chbAnt2->setEnabled(enable);
-    ui->chbAnt3->setEnabled(enable);
-    ui->chbAnt4->setEnabled(enable);
+//    ui->chbAnt1->setEnabled(enable);
+//    ui->chbAnt2->setEnabled(enable);
+//    ui->chbAnt3->setEnabled(enable);
+//    ui->chbAnt4->setEnabled(enable);
 
     ui->btnGetOutputPower->setEnabled(enable);
     ui->btnSetOutputPower->setEnabled(enable);

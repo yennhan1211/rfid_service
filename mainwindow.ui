@@ -20,7 +20,7 @@
       <x>810</x>
       <y>3</y>
       <width>401</width>
-      <height>231</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="title">
@@ -34,6 +34,9 @@
        <width>150</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="text">
+      <string>30</string>
      </property>
     </widget>
     <widget class="QPushButton" name="btnGetOutputPower">
@@ -136,6 +139,9 @@
        <height>20</height>
       </rect>
      </property>
+     <property name="text">
+      <string>30</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="leAnt3Power">
      <property name="geometry">
@@ -146,6 +152,9 @@
        <height>20</height>
       </rect>
      </property>
+     <property name="text">
+      <string>30</string>
+     </property>
     </widget>
     <widget class="QLineEdit" name="leAnt4Power">
      <property name="geometry">
@@ -155,6 +164,9 @@
        <width>150</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="text">
+      <string>30</string>
      </property>
     </widget>
     <widget class="QCheckBox" name="chbAnt1">
@@ -252,13 +264,103 @@
      <property name="geometry">
       <rect>
        <x>320</x>
-       <y>40</y>
+       <y>45</y>
        <width>81</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
       <string>Working status</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="cbbZone">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>20</y>
+       <width>141</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>FCC</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>ETSI</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>CHN</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="lbVersion_8">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>22</y>
+       <width>41</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Zone</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leInterval">
+     <property name="geometry">
+      <rect>
+       <x>70</x>
+       <y>230</y>
+       <width>71</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_9">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>230</y>
+       <width>41</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Interval</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="lbVersion_10">
+     <property name="geometry">
+      <rect>
+       <x>157</x>
+       <y>230</y>
+       <width>41</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Repeat</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="leRepeat">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>230</y>
+       <width>71</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>10</string>
      </property>
     </widget>
    </widget>
@@ -383,9 +485,9 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>240</y>
+      <y>270</y>
       <width>1201</width>
-      <height>411</height>
+      <height>381</height>
      </rect>
     </property>
    </widget>

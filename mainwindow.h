@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QTimer>
 #include <QDateTime>
+#include <QHash>
 #include <rfid_impinj.h>
 
 namespace Ui {
@@ -33,6 +34,8 @@ private slots:
 
     void requestTimerTimeOut();
 
+    void checkBoxHandler(bool);
+
     void tagFound(epc_tag*);
 
 private:
@@ -40,8 +43,11 @@ private:
     QThread *rfid_thread;
     QTimer requestTimer;
 
+    QHash<QString, epc_tag> tagsHolder;
+
     bool mRunning;
     QDateTime mStartTime;
+    QDateTime mStartCaptureTime;
     quint64 mSessionTime;
     int timerid;
 

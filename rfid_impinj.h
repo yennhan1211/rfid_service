@@ -6,6 +6,7 @@
 #include <QTcpSocket>
 #include <QNetworkSession>
 #include <QNetworkProxy>
+#include <QDateTime>
 
 class command
 {
@@ -35,16 +36,14 @@ class epc_tag : public QObject
 {
     Q_OBJECT
 public:
-    explicit epc_tag(quint8 *buff, quint8 len);
-
-    quint8 pc[2];
-    quint8 rssi;
-    quint8 freq;
-    quint8 ant_id;
-    quint8 * epc;
-    quint8 epc_len;
-
+    explicit epc_tag(quint8 *buff = 0, quint8 len = 0);
+    epc_tag(const epc_tag &tag);
+    ~epc_tag();
     QString toString();
+    quint8 getRSSI();
+    quint8 getFreq();
+    QString getKeyID();
+    void updateAntennaInfo(epc_tag&);
 
     bool friend operator ==(const epc_tag &tag1, const epc_tag &tag2) {
         for(int i = 0; i < 2; i++) {
@@ -64,6 +63,16 @@ public:
         }
         return true;
     }
+    epc_tag& operator= (const epc_tag &tag);
+private:
+    quint8 pc[2];
+    quint8 rssi;
+    quint8 freq;
+    quint8 ant_id;
+    quint8 * epc;
+    quint8 epc_len;
+
+    QString keyID;
 
 //    bool friend operator !=(const epc_tag &tag1, const epc_tag &tag2);
 //    friend std::ostream& operator << (std::ostream &out, const epc_tag &tag);
@@ -99,6 +108,7 @@ class antenna : public QObject{
     Q_OBJECT
 public:
     explicit antenna(quint8 antId, quint8 rssi,quint8 frqAnt);
+    QDateTime timeCaptured;
 };
 
 class rfid_Impinj : public QObject
@@ -111,6 +121,7 @@ public:
 
     int getVersion();
     int getTemp();
+    int getRegionFreq();
     int setOutputPower(int);
     int getOutputPower(int);
 
