@@ -6,6 +6,11 @@
 #include <QTimer>
 #include <QDateTime>
 #include <QHash>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QMessageBox>
+#include <QSqlQueryModel>
 #include <rfid_impinj.h>
 
 namespace Ui {
@@ -21,6 +26,11 @@ public:
     ~MainWindow();
 
     rfid_Impinj *myReader;
+
+    int createDb();
+
+signals:
+    void updateTable();
 
 private slots:
     void on_btnConDis_clicked();
@@ -44,6 +54,8 @@ private:
     QTimer requestTimer;
 
     QHash<QString, epc_tag> tagsHolder;
+
+    QSqlQueryModel *model;
 
     bool mRunning;
     QDateTime mStartTime;

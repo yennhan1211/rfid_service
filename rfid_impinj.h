@@ -32,6 +32,17 @@ private:
     QByteArray data;
 };
 
+class antenna {
+public:
+    explicit antenna(quint8 antId, quint8 rssi,quint8 frqAnt);
+    antenna(const antenna &ant);
+    antenna& operator= (const antenna &ant);
+    quint8 rssi;
+    quint8 freq;
+    quint8 ant_id;
+    QDateTime timeCaptured;
+};
+
 class epc_tag : public QObject
 {
     Q_OBJECT
@@ -64,6 +75,7 @@ public:
         return true;
     }
     epc_tag& operator= (const epc_tag &tag);
+    void updateStartTimePerTag(QDateTime& stime);
 private:
     quint8 pc[2];
     quint8 rssi;
@@ -71,9 +83,14 @@ private:
     quint8 ant_id;
     quint8 * epc;
     quint8 epc_len;
+    antenna *tagAnt;
+
+    QDateTime startTimePerTag;
+//    QDateTime captureTime;
 
     QString keyID;
 
+    QList<antenna> antHolder;
 //    bool friend operator !=(const epc_tag &tag1, const epc_tag &tag2);
 //    friend std::ostream& operator << (std::ostream &out, const epc_tag &tag);
 };
@@ -103,13 +120,6 @@ private:
 //    out << tag.toString();
 //    return out;
 //}
-
-class antenna : public QObject{
-    Q_OBJECT
-public:
-    explicit antenna(quint8 antId, quint8 rssi,quint8 frqAnt);
-    QDateTime timeCaptured;
-};
 
 class rfid_Impinj : public QObject
 {

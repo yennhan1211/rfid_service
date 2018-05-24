@@ -7,21 +7,39 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    // setup ui
     ui->setupUi(this);
 
     //setup status bar
     ui->statusBar->showMessage("Disconnected");
 
+//    rfid_thread->start();
+
+    enableUI(false);
+
+    createDb();
     //setup tableview
-    QStandardItemModel *model = new QStandardItemModel(1,4, this);
 
-    model->setHorizontalHeaderItem(0, new QStandardItem(QString("PC")));
-    model->setHorizontalHeaderItem(1, new QStandardItem(QString("EPC")));
-    model->setHorizontalHeaderItem(2, new QStandardItem(QString("RSSI")));
-    model->setHorizontalHeaderItem(3, new QStandardItem(QString("FREQ")));
 
+//    ui->tableView->setColumnWidth(0, (int)(ui->tableView->width()/5));
+//    ui->tableView->setColumnWidth(1, (int)(ui->tableView->width()/5));
+//    ui->tableView->setColumnWidth(2, (int)(ui->tableView->width()/5));
+//    ui->tableView->setColumnWidth(3, (int)(ui->tableView->width()/5));
+//    ui->tableView->setColumnWidth(4, (int)(ui->tableView->width()/5));
+    model = new QSqlQueryModel;
+    model->setQuery("select * from taginfo");
+    model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("PC"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("EPC"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("RSSI"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("FREQ"));
+    model->setHeaderData(5, Qt::Horizontal, QObject::tr("TIME CAPTURED"));
+    model->setHeaderData(6, Qt::Horizontal, QObject::tr("DELTA TIME"));
+    model->query();
     ui->tableView->setModel(model);
+    ui->tableView->show();
 
+    // connect signal
     requestTimer.setInterval(1000);
     requestTimer.setSingleShot(false);
 
@@ -47,11 +65,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&requestTimer, SIGNAL(timeout()), this, SLOT(requestTimerTimeOut()));
 
     mRunning = false;
-
-
-//    rfid_thread->start();
-
-    enableUI(false);
 }
 
 MainWindow::~MainWindow()
@@ -69,6 +82,33 @@ MainWindow::~MainWindow()
 //    delete rfid_thread;
     delete myReader;
     delete ui;
+}
+
+int MainWindow::createDb()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName("./mydb.db");
+    if (!db.open()) {
+        QMessageBox::critical(0, qApp->tr("Cannot open database"),
+            qApp->tr("Unable to establish a database connection.\n"
+                     "This example needs SQLite support. Please read "
+                     "the Qt SQL driver documentation for information how "
+                     "to build it.\n\n"
+                     "Click Cancel to exit."), QMessageBox::Cancel);
+        return false;
+    }
+
+    // create table if not exist
+    QSqlQuery query;
+    query.exec("create table if not exists taginfo (id int primary key, "
+               "pccode varchar(4), epccode varchar(128), rssi int, freq real, timecapture datetime, deltatime int)");
+
+    // test insert
+    // QString str = QString("insert into taginfo values(0, '00 11', '11 22 33 44', 30, 895.5, '%1', 1234)").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+//    qDebug() << str;
+//    query.exec(str);
+
+    return 0;
 }
 
 void MainWindow::on_btnConDis_clicked()

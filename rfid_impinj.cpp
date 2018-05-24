@@ -399,6 +399,10 @@ epc_tag::epc_tag(quint8 *buff, quint8 len)
         tmpStr.sprintf("%x", epc[i]);
         keyID.append(tmpStr);
     }
+
+    rssi = buff[len -1];
+    tagAnt = new antenna(ant_id, rssi, freq);
+    antHolder.append(*tagAnt);
 }
 
 epc_tag::epc_tag(const epc_tag &tag)
@@ -416,7 +420,18 @@ epc_tag::epc_tag(const epc_tag &tag)
         epc[i] = tag.epc[i + 3];
     }
 
+    epc_len = tag.epc_len;
     keyID = tag.keyID;
+
+    tagAnt = new antenna(0,0,0);
+    *tagAnt = *(tag.tagAnt);
+
+    rssi = tag.rssi;
+    startTimePerTag = tag.startTimePerTag;
+    antHolder.clear();
+    for(int i =0; i < tag.antHolder.length(); i++) {
+        antHolder.append(tag.antHolder[i]);
+    }
 }
 
 epc_tag::~epc_tag()
@@ -424,8 +439,8 @@ epc_tag::~epc_tag()
     delete epc;
 }
 
-void epc_tag::updateAntennaInfo(epc_tag& tag){
-    Q_UNUSED(tag);
+void epc_tag:: updateAntennaInfo(epc_tag& tag){
+    antHolder.append(*(tag.tagAnt));
 }
 
 epc_tag &epc_tag::operator=(const epc_tag &tag)
@@ -438,12 +453,25 @@ epc_tag &epc_tag::operator=(const epc_tag &tag)
     pc[1] = tag.pc[1];
 
     epc = new quint8[tag.epc_len];
+    epc_len = tag.epc_len;
 
     for (int i = 0; i < (tag.epc_len); ++i) {
         epc[i] = tag.epc[i + 3];
     }
 
     keyID = tag.keyID;
+
+    if(tagAnt != NULL)delete tagAnt;
+
+    tagAnt = new antenna(0,0,0);
+    *tagAnt = *(tag.tagAnt);
+
+    rssi = tag.rssi;
+    startTimePerTag = tag.startTimePerTag;
+    antHolder.clear();
+    for(int i =0; i < tag.antHolder.length(); i++) {
+        antHolder.append(tag.antHolder[i]);
+    }
 
     return *this;
 }
@@ -464,4 +492,28 @@ QString epc_tag::toString()
 QString epc_tag::getKeyID()
 {
     return keyID;
+}
+
+
+antenna::antenna(quint8 antId, quint8 rssi, quint8 frqAnt):ant_id(antId),rssi(rssi),freq(frqAnt)
+{
+    timeCaptured = QDateTime::currentDateTime();
+}
+
+antenna::antenna(const antenna &ant)
+{
+    rssi = ant.rssi;
+    freq = ant.freq;
+    ant_id = ant.ant_id;
+
+    timeCaptured= ant.timeCaptured;
+}
+
+antenna &antenna::operator=(const antenna &ant)
+{
+    rssi = ant.rssi;
+    freq = ant.freq;
+    ant_id = ant.ant_id;
+
+    timeCaptured= ant.timeCaptured;
 }
