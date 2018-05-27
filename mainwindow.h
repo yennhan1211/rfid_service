@@ -48,6 +48,12 @@ private slots:
 
     void tagFound(epc_tag*);
 
+    void startRequest();
+
+    void on_btnSetDelayTime_clicked();
+
+    void on_btnSetOffsetTime_clicked();
+
 private:
     Ui::MainWindow *ui;
     QThread *rfid_thread;
@@ -62,6 +68,10 @@ private:
     QDateTime mStartCaptureTime;
     quint64 mSessionTime;
     int timerid;
+
+    QTimer oneShotStartTimer;
+    int delayStartTime;
+    int requestInterval;
 
     void enableUI(bool);
 protected:

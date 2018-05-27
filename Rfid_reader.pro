@@ -21,3 +21,8 @@ HEADERS  += mainwindow.h \
     rfid_impinj_cmd.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    rfid.qrc
+
+RC_ICONS = finishline.ico

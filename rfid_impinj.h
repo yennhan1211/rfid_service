@@ -54,7 +54,11 @@ public:
     quint8 getRSSI();
     quint8 getFreq();
     QString getKeyID();
+    QString getPCID();
     void updateAntennaInfo(epc_tag&);
+
+    int rssiToDbm();
+    float freqToHz();
 
     bool friend operator ==(const epc_tag &tag1, const epc_tag &tag2) {
         for(int i = 0; i < 2; i++) {
@@ -76,6 +80,7 @@ public:
     }
     epc_tag& operator= (const epc_tag &tag);
     void updateStartTimePerTag(QDateTime& stime);
+    antenna *tagAnt;
 private:
     quint8 pc[2];
     quint8 rssi;
@@ -83,12 +88,13 @@ private:
     quint8 ant_id;
     quint8 * epc;
     quint8 epc_len;
-    antenna *tagAnt;
+
 
     QDateTime startTimePerTag;
-//    QDateTime captureTime;
+    QDateTime captureTime;
 
     QString keyID;
+    QString pcID;
 
     QList<antenna> antHolder;
 //    bool friend operator !=(const epc_tag &tag1, const epc_tag &tag2);
@@ -133,7 +139,10 @@ public:
     int getTemp();
     int getRegionFreq();
     int setOutputPower(int);
-    int getOutputPower(int);
+    int setOutputPower(int power0, int power1, int power2, int power3);
+    int getOutputPower();
+    int getWorkAntenna();
+    int setWorkAntenna(int);
 
     void setIntervalSwitchAnt(int);
     int getIntervalSwitchAnt();

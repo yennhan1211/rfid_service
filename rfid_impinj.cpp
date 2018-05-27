@@ -86,6 +86,60 @@ int rfid_Impinj::getRegionFreq()
     return sendCommand(cmdTmp, 4);
 }
 
+int rfid_Impinj::setOutputPower(int power)
+{
+    qDebug() << "setOutputPower for all";
+    quint8 cmdTmp[5] = {
+        0xa0,0x04,0x01,0x76
+    };
+
+    cmdTmp[4] = (quint8)power & 0x21;
+
+    return sendCommand(cmdTmp, 5);
+}
+
+int rfid_Impinj::setOutputPower(int power0, int power1, int power2, int power3)
+{
+//    qDebug() << "setOutputPower for " << ant_id;
+    quint8 cmdTmp[8] = {
+        0xa0,0x07,0x01,0x76
+    };
+
+    cmdTmp[4] = (quint8)power0 & 0x21;
+    cmdTmp[5] = (quint8)power1 & 0x21;
+    cmdTmp[6] = (quint8)power2 & 0x21;
+    cmdTmp[7] = (quint8)power3 & 0x21;
+
+    return sendCommand(cmdTmp, 8);
+}
+
+int rfid_Impinj::getOutputPower()
+{
+
+}
+
+int rfid_Impinj::getWorkAntenna()
+{
+    qDebug() << "getWorkAntenna";
+    quint8 cmdTmp[4] = {
+        0xa0,0x03,0x01,0x75
+    };
+
+    return sendCommand(cmdTmp, 4);
+}
+
+int rfid_Impinj::setWorkAntenna(int ant_id)
+{
+    qDebug() << "setWorkAntenna";
+    quint8 cmdTmp[5] = {
+        0xa0,0x04,0x01,0x74
+    };
+
+    cmdTmp[4] = (quint8)ant_id & 0x03;
+
+    return sendCommand(cmdTmp, 5);
+}
+
 void rfid_Impinj::setIntervalSwitchAnt(int i)
 {
     interval = i;
@@ -206,6 +260,7 @@ void rfid_Impinj::processDataArrival(quint8 addr, quint8 cmd, quint8 len, quint8
         emit versionUpdated(version);
         break;
     case CMD_GET_WORK_ANTENNA:
+        qDebug() << "Working ant: " << data[0];
         break;
     case CMD_SET_WORK_ANTENNA:
         break;
@@ -384,10 +439,12 @@ command command::buildFromBuf(QByteArray)
 epc_tag::epc_tag(quint8 *buff, quint8 len)
 {
     freq = quint8(buff[0] >> 2);
-    ant_id = quint8(buff[0] & 0xfc);
+    ant_id = quint8(buff[0] & 0x03);
 
     pc[0] = buff[1];
     pc[1] = buff[2];
+
+    pcID.sprintf("%x %x", pc[0], pc[1]);
 
     epc_len = len - 4;
 
@@ -422,6 +479,7 @@ epc_tag::epc_tag(const epc_tag &tag)
 
     epc_len = tag.epc_len;
     keyID = tag.keyID;
+    pcID = tag.pcID;
 
     tagAnt = new antenna(0,0,0);
     *tagAnt = *(tag.tagAnt);
@@ -440,7 +498,37 @@ epc_tag::~epc_tag()
 }
 
 void epc_tag:: updateAntennaInfo(epc_tag& tag){
+    qDebug() << "updateAntennaInfo " << tag.tagAnt->ant_id;
     antHolder.append(*(tag.tagAnt));
+}
+
+int epc_tag::rssiToDbm()
+{
+    int retVal = 0;
+
+    if(rssi >= (quint8)90) {
+        retVal = rssi - (quint8)98 + (-31);
+    } else if(rssi >= (quint8)66) {
+        retVal = rssi - (quint8)89 + (-41);
+    } else if (rssi == (quint8)65){
+        retVal = -55;
+    } else if(rssi >= (quint8)31){
+        retVal = rssi - (quint8)64 + (-66);
+    }
+
+    return retVal;
+}
+
+float epc_tag::freqToHz()
+{
+    float retVal = 0;
+    if(freq <= (quint8)6){
+        retVal = 865 + 0.5 * (float)freq;
+    } else {
+        retVal = 902 + (float)(freq - 7) * 0.5;
+    }
+
+    return retVal;
 }
 
 epc_tag &epc_tag::operator=(const epc_tag &tag)
@@ -459,7 +547,9 @@ epc_tag &epc_tag::operator=(const epc_tag &tag)
         epc[i] = tag.epc[i + 3];
     }
 
+    epc_len = tag.epc_len;
     keyID = tag.keyID;
+    pcID = tag.pcID;
 
     if(tagAnt != NULL)delete tagAnt;
 
@@ -492,6 +582,11 @@ QString epc_tag::toString()
 QString epc_tag::getKeyID()
 {
     return keyID;
+}
+
+QString epc_tag::getPCID()
+{
+    return pcID;
 }
 
 

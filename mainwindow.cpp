@@ -14,34 +14,32 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->showMessage("Disconnected");
 
 //    rfid_thread->start();
+    mRunning = false;
+    requestInterval = 1000; // default 1s
+    delayStartTime = 10000; // default 10s delay
 
     enableUI(false);
 
     createDb();
+
     //setup tableview
-
-
-//    ui->tableView->setColumnWidth(0, (int)(ui->tableView->width()/5));
-//    ui->tableView->setColumnWidth(1, (int)(ui->tableView->width()/5));
-//    ui->tableView->setColumnWidth(2, (int)(ui->tableView->width()/5));
-//    ui->tableView->setColumnWidth(3, (int)(ui->tableView->width()/5));
-//    ui->tableView->setColumnWidth(4, (int)(ui->tableView->width()/5));
     model = new QSqlQueryModel;
     model->setQuery("select * from taginfo");
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
     model->setHeaderData(1, Qt::Horizontal, QObject::tr("PC"));
     model->setHeaderData(2, Qt::Horizontal, QObject::tr("EPC"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("RSSI"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("FREQ"));
-    model->setHeaderData(5, Qt::Horizontal, QObject::tr("TIME CAPTURED"));
-    model->setHeaderData(6, Qt::Horizontal, QObject::tr("DELTA TIME"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("RSSI(dBm)"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("FREQ(MHz)"));
+    model->setHeaderData(5, Qt::Horizontal, QObject::tr("ANTENNA ID"));
+    model->setHeaderData(6, Qt::Horizontal, QObject::tr("TIME CAPTURED"));
+    model->setHeaderData(7, Qt::Horizontal, QObject::tr("DELTA TIME(ms)"));
     model->query();
+    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     ui->tableView->setModel(model);
     ui->tableView->show();
 
     // connect signal
-    requestTimer.setInterval(1000);
-    requestTimer.setSingleShot(false);
+    oneShotStartTimer.setSingleShot(true);
 
 
 //    rfid_thread = new QThread();
@@ -63,8 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(myReader, SIGNAL(tagFound(epc_tag*)), this, SLOT(tagFound(epc_tag*)));
 
     connect(&requestTimer, SIGNAL(timeout()), this, SLOT(requestTimerTimeOut()));
-
-    mRunning = false;
+    connect(&oneShotStartTimer, SIGNAL(timeout()), this, SLOT(startRequest()));
 }
 
 MainWindow::~MainWindow()
@@ -87,7 +84,8 @@ MainWindow::~MainWindow()
 int MainWindow::createDb()
 {
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName("./mydb.db");
+//    db.setDatabaseName("./mydb.db");
+    db.setDatabaseName(":memory:");
     if (!db.open()) {
         QMessageBox::critical(0, qApp->tr("Cannot open database"),
             qApp->tr("Unable to establish a database connection.\n"
@@ -100,11 +98,11 @@ int MainWindow::createDb()
 
     // create table if not exist
     QSqlQuery query;
-    query.exec("create table if not exists taginfo (id int primary key, "
-               "pccode varchar(4), epccode varchar(128), rssi int, freq real, timecapture datetime, deltatime int)");
+    query.exec("create table if not exists taginfo (id integer primary key autoincrement,"
+               "pccode varchar(4), epccode varchar(256), rssi int, freq real,antid int, timecapture datetime, deltatime int)");
 
     // test insert
-    // QString str = QString("insert into taginfo values(0, '00 11', '11 22 33 44', 30, 895.5, '%1', 1234)").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+//     QString str = QString("insert into taginfo values('00 11', '11 22 33 44', 30, 895.5, '%1', 1234)").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
 //    qDebug() << str;
 //    query.exec(str);
 
@@ -146,23 +144,32 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
 void MainWindow::on_btnGetOutputPower_clicked()
 {
     myReader->getTemp();
+    myReader->getWorkAntenna();
+//    QSqlQuery query;
+//    QString str = QString("insert into taginfo(pccode,epccode,rssi,freq,antid,timecapture,deltatime) values('00 11', '11 22 33 44', 30, 895.5, '%1', 1234)").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+//    qDebug() << str;
+//    query.exec(str);
+//    model->setQuery("select * from taginfo");
+//    model->query();
+//    ui->tableView->setModel(model);
+//    ui->tableView->show();
 }
 
 void MainWindow::on_btnSetOutputPower_clicked()
 {
-    myReader->sendTest();
+//    myReader->sendTest();
 }
 
 void MainWindow::on_btnStartTimer()
 {
     if(!mRunning){
         mStartTime = QDateTime::currentDateTime();
-        mStartCaptureTime = QDateTime::currentDateTime();
+        mStartCaptureTime = mStartTime;
         mRunning = true;
         ui->btnStartTime->setText("STOP");
         qDebug() <<"Start counting";
         timerid = startTimer(0);
-        requestTimer.start();
+        oneShotStartTimer.start(delayStartTime);
     } else {
         killTimer(timerid);
         ui->btnStartTime->setText("START");
@@ -175,7 +182,17 @@ void MainWindow::requestTimerTimeOut()
 {
     qDebug() << "On requestTimerTimeOut";
     if(mRunning && myReader->getConnectStatus()){
-        myReader->getTemp();
+        int sleepTimeAnt = ui->leInterval->text().toInt();
+        int repeatimte = ui->leRepeat->text().toInt();
+        quint8 tmp[] = {
+            0xa0,0x0d,0x01,0x8a,0x00,0x01,
+            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a//,0xb4
+        };
+        tmp[12] = quint8(sleepTimeAnt);
+        tmp[13] = quint8(repeatimte);
+    //    qDebug() << "Write test";
+    //    tcpSocket->write(tmp, 5);
+        myReader->sendCommand(tmp,sizeof(tmp)/sizeof(quint8));
     }
 }
 
@@ -190,48 +207,94 @@ void MainWindow::checkBoxHandler(bool isChecked)
     }
     if(chk == ui->chbAnt1){
         qDebug() << "chbAnt1";
+        myReader->setWorkAntenna(0);
     } else if(chk == ui->chbAnt2){
+        myReader->setWorkAntenna(1);
         qDebug() << "chbAnt2";
     } else if(chk == ui->chbAnt3){
+        myReader->setWorkAntenna(2);
         qDebug() << "chbAnt3";
     } else if(chk == ui->chbAnt4){
+        myReader->setWorkAntenna(3);
         qDebug() << "chbAnt4";
     }
+
 
 }
 
 void MainWindow::tagFound(epc_tag * tag)
 {
+    if(!mRunning)return;
+
   // check tag is exist or not
     QHash<QString, epc_tag>::const_iterator i = tagsHolder.find(tag->getKeyID());
 
     if (i == tagsHolder.end()) // not exist
     {
       tagsHolder.insert(tag->getKeyID(), *(tag));
+      // add to db
+      QString strQuery = QString("insert into taginfo(pccode,epccode,rssi,freq,antid,timecapture,deltatime)"
+                            " values('%1', '%2', %3, %4, %5, '%6', %7)")
+                                .arg(tag->getPCID())
+                                .arg(tag->getKeyID())
+                                .arg(QString::number(tag->rssiToDbm()))
+                                .arg(QString::number(tag->freqToHz(), 'g', 1))
+                                .arg(QString::number(tag->tagAnt->ant_id))
+                                .arg(tag->tagAnt->timeCaptured.toString("yyyy-MM-dd hh:mm:ss"))
+                                .arg(mStartCaptureTime.msecsTo(tag->tagAnt->timeCaptured));
+      qDebug() << strQuery;
+      QSqlQuery query;
+      query.exec(strQuery);
+      model->setQuery("select * from taginfo");
+      model->query();
     } else {
       tagsHolder[tag->getKeyID()].updateAntennaInfo(*(tag));
     }
 
+
     // emit reorder table
+    emit updateTable();
 
     if(tag != NULL){
         delete tag;
     }
 }
 
+void MainWindow::startRequest()
+{
+    if(mRunning){
+        if(requestTimer.isActive() == false){
+            int sleepInterval = ui->leInterval->text().toInt();
+            int repeatimte = ui->leRepeat->text().toInt();
+            if(repeatimte != 0){
+                requestInterval = (sleepInterval + 30) * 4;
+            } else {
+                requestInterval = (sleepInterval + 30) * 4 * repeatimte;
+            }
+            requestTimer.start(requestInterval);
+        }
+    }
+}
+
 void MainWindow::enableUI(bool enable)
 {
     ui->btnStartTime->setEnabled(enable);
-//    ui->chbAnt1->setEnabled(enable);
-//    ui->chbAnt2->setEnabled(enable);
-//    ui->chbAnt3->setEnabled(enable);
-//    ui->chbAnt4->setEnabled(enable);
+    ui->chbAnt1->setEnabled(enable);
+    ui->chbAnt2->setEnabled(enable);
+    ui->chbAnt3->setEnabled(enable);
+    ui->chbAnt4->setEnabled(enable);
+
 
     ui->btnGetOutputPower->setEnabled(enable);
     ui->btnSetOutputPower->setEnabled(enable);
     ui->btnSetOutputPower_2->setEnabled(enable);
     ui->btnSetOutputPower_3->setEnabled(enable);
     ui->btnSetOutputPower_4->setEnabled(enable);
+
+    ui->btnSetDelayTime->setEnabled(enable);
+    ui->btnSetOffsetTime->setEnabled(enable);
+
+    ui->cbbZone->setEnabled(enable);
 }
 
 void MainWindow::timerEvent(QTimerEvent *e)
@@ -252,5 +315,28 @@ void MainWindow::timerEvent(QTimerEvent *e)
                                 .arg(s,  2, 10, QChar('0'))
                                 .arg(ms, 3, 10, QChar('0'));
         ui->lbStartTime->setText(diff);
+    }
+}
+
+void MainWindow::on_btnSetDelayTime_clicked()
+{
+    bool flag = false;
+    int tmp = ui->leDelayTime->text().toInt(&flag);
+    if(flag){
+        delayStartTime = 1000 * tmp;
+    } else {
+        delayStartTime = 10000; // default
+        QMessageBox::critical(0, qApp->tr("Cannot open database"),
+            qApp->tr("Make sure all inputs are numberic"), QMessageBox::Ok);
+    }
+}
+
+void MainWindow::on_btnSetOffsetTime_clicked()
+{
+    QString strIn = ui->leOffsetTime->text();
+
+    if(mRunning){
+        mStartCaptureTime.addSecs(strIn.toInt());
+        mStartTime.addSecs(strIn.toInt());
     }
 }
