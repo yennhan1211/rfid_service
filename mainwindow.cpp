@@ -40,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // connect signal
     oneShotStartTimer.setSingleShot(true);
+    readBasicInfoTimer.setInterval(300);
+    readBasicInfoTimer.setSingleShot(true);
 
 
 //    rfid_thread = new QThread();
@@ -57,11 +59,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(myReader, SIGNAL(versionUpdated(QString)), ui->lbVersion, SLOT(setText(QString)));
     connect(myReader, SIGNAL(tempUpdated(QString)), ui->lbTemp, SLOT(setText(QString)));
     connect(myReader, SIGNAL(connectStatusChanged(bool)), this, SLOT(on_connectStatusChanged(bool)));
+    connect(myReader, SIGNAL(outputPowerUpdate(quint8)), this, SLOT(updateOutputPower(quint8)));
 
     connect(myReader, SIGNAL(tagFound(epc_tag*)), this, SLOT(tagFound(epc_tag*)));
 
     connect(&requestTimer, SIGNAL(timeout()), this, SLOT(requestTimerTimeOut()));
     connect(&oneShotStartTimer, SIGNAL(timeout()), this, SLOT(startRequest()));
+    connect(&readBasicInfoTimer, SIGNAL(timeout()), this, SLOT(readBasicInfo()));
 }
 
 MainWindow::~MainWindow()
@@ -83,16 +87,13 @@ MainWindow::~MainWindow()
 
 int MainWindow::createDb()
 {
+
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-//    db.setDatabaseName("./mydb.db");
+    db.setDatabaseName("./mydb.db");
     db.setDatabaseName(":memory:");
     if (!db.open()) {
         QMessageBox::critical(0, qApp->tr("Cannot open database"),
-            qApp->tr("Unable to establish a database connection.\n"
-                     "This example needs SQLite support. Please read "
-                     "the Qt SQL driver documentation for information how "
-                     "to build it.\n\n"
-                     "Click Cancel to exit."), QMessageBox::Cancel);
+            db.lastError().text(), QMessageBox::Cancel);
         return false;
     }
 
@@ -131,6 +132,7 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
         ui->btnConDis->setText("Disconnect");
         ui->statusBar->showMessage("Connected");
         myReader->getVersion();
+        readBasicInfoTimer.start();
 //        myReader->getTemp();
         enableUI(true);
     } else {
@@ -138,13 +140,17 @@ void MainWindow::on_connectStatusChanged(bool isConnected)
         ui->statusBar->showMessage("Disconnected");
         ui->btnConDis->setText("Connect");
         enableUI(false);
+        if(mRunning){
+            stopCount();
+        }
     }
 }
 
 void MainWindow::on_btnGetOutputPower_clicked()
 {
-    myReader->getTemp();
-    myReader->getWorkAntenna();
+    myReader->getOutputPower();
+//    myReader->getTemp();
+//    myReader->getWorkAntenna();
 //    QSqlQuery query;
 //    QString str = QString("insert into taginfo(pccode,epccode,rssi,freq,antid,timecapture,deltatime) values('00 11', '11 22 33 44', 30, 895.5, '%1', 1234)").arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
 //    qDebug() << str;
@@ -158,23 +164,17 @@ void MainWindow::on_btnGetOutputPower_clicked()
 void MainWindow::on_btnSetOutputPower_clicked()
 {
 //    myReader->sendTest();
+    int pw = ui->leAnt1Power->text().toInt();
+    myReader->setOutputPower(pw);
+    readBasicInfoTimer.start();
 }
 
 void MainWindow::on_btnStartTimer()
 {
     if(!mRunning){
-        mStartTime = QDateTime::currentDateTime();
-        mStartCaptureTime = mStartTime;
-        mRunning = true;
-        ui->btnStartTime->setText("STOP");
-        qDebug() <<"Start counting";
-        timerid = startTimer(0);
-        oneShotStartTimer.start(delayStartTime);
+        startCount();
     } else {
-        killTimer(timerid);
-        ui->btnStartTime->setText("START");
-        mRunning = false;
-        requestTimer.stop();
+        stopCount();
     }
 }
 
@@ -297,6 +297,32 @@ void MainWindow::enableUI(bool enable)
     ui->cbbZone->setEnabled(enable);
 }
 
+void MainWindow::startCount()
+{
+    mStartTime = QDateTime::currentDateTime();
+    mStartCaptureTime = mStartTime;
+    mRunning = true;
+    ui->btnStartTime->setText("STOP");
+    qDebug() <<"Start counting";
+    timerid = startTimer(0);
+    oneShotStartTimer.start(delayStartTime);
+    if(tagsHolder.size() > 0) {
+        tagsHolder.clear();
+        qDebug() << tagsHolder.size();
+        QSqlQuery query;
+        query.exec("delete from taginfo");
+        model->clear();
+    }
+}
+
+void MainWindow::stopCount()
+{
+    killTimer(timerid);
+    ui->btnStartTime->setText("START");
+    mRunning = false;
+    requestTimer.stop();
+}
+
 void MainWindow::timerEvent(QTimerEvent *e)
 {
     if(timerid != e->timerId()){
@@ -334,9 +360,35 @@ void MainWindow::on_btnSetDelayTime_clicked()
 void MainWindow::on_btnSetOffsetTime_clicked()
 {
     QString strIn = ui->leOffsetTime->text();
-
+    qDebug() << strIn;
     if(mRunning){
         mStartCaptureTime.addSecs(strIn.toInt());
-        mStartTime.addSecs(strIn.toInt());
+        mStartTime.addSecs(100);
     }
+}
+
+void MainWindow::on_btnResetReader_clicked()
+{
+    if(myReader->getConnectStatus()){
+        quint8 tmpCmd[] = {
+            0xa0,0x03,0x01,0x70
+        };
+        myReader->sendCommand(tmpCmd, 4);
+    }
+}
+
+void MainWindow::readBasicInfo()
+{
+    if(myReader->getConnectStatus()){
+        myReader->getOutputPower();
+    }
+}
+
+void MainWindow::updateOutputPower(quint8 p)
+{
+    QString pw = QString::number(p);
+    ui->leAnt1Power->setText(pw);
+    ui->leAnt2Power->setText(pw);
+    ui->leAnt3Power->setText(pw);
+    ui->leAnt4Power->setText(pw);
 }

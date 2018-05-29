@@ -54,10 +54,18 @@ private slots:
 
     void on_btnSetOffsetTime_clicked();
 
+    void on_btnResetReader_clicked();
+
+    void readBasicInfo();
+
+    void updateOutputPower(quint8);
+
 private:
     Ui::MainWindow *ui;
     QThread *rfid_thread;
     QTimer requestTimer;
+
+    QTimer readBasicInfoTimer;
 
     QHash<QString, epc_tag> tagsHolder;
 
@@ -74,6 +82,8 @@ private:
     int requestInterval;
 
     void enableUI(bool);
+    void startCount();
+    void stopCount();
 protected:
     void timerEvent(QTimerEvent *);
 };

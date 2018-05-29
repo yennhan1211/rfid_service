@@ -93,7 +93,7 @@ int rfid_Impinj::setOutputPower(int power)
         0xa0,0x04,0x01,0x76
     };
 
-    cmdTmp[4] = (quint8)power & 0x21;
+    cmdTmp[4] = (quint8)power;
 
     return sendCommand(cmdTmp, 5);
 }
@@ -115,7 +115,10 @@ int rfid_Impinj::setOutputPower(int power0, int power1, int power2, int power3)
 
 int rfid_Impinj::getOutputPower()
 {
-
+    quint8 cmdTmp[4] = {
+        0xa0,0x07,0x01,0x77
+    };
+    return sendCommand(cmdTmp, 8);
 }
 
 int rfid_Impinj::getWorkAntenna()
@@ -283,6 +286,18 @@ void rfid_Impinj::processDataArrival(quint8 addr, quint8 cmd, quint8 len, quint8
             qDebug() << "Tag found " << tag->toString();
             emit tagFound(tag);
         }
+        break;
+    case CMD_RESET:
+        qDebug() << "Reset reader failed";
+        emit resetReader(false);
+        break;
+    case CMD_GET_OUTPUT_POWER:
+        qDebug() << "get output power";
+        emit outputPowerUpdate(data[0]);
+        break;
+    case CMD_SET_OUTPUT_POWER:
+        qDebug() << "set output power";
+//        emit setOutputPowerResult();
         break;
     default:
         qDebug() << "Unknown command " << cmd;

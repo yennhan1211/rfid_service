@@ -412,7 +412,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>141.136.149.28</string>
+      <string>rfidcroatia.dyndns.org</string>
      </property>
     </widget>
     <widget class="QLabel" name="lbPort">
@@ -583,6 +583,19 @@ qproperty-alignment: AlignCenter;</string>
     </property>
     <property name="text">
      <string>10</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="btnResetReader">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>130</y>
+      <width>171</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>RESET READER</string>
     </property>
    </widget>
   </widget>

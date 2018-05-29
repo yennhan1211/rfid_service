@@ -191,6 +191,8 @@ signals:
     void versionUpdated(QString);
     void tempUpdated(QString);
     void error(QString);
+    void resetReader(bool);
+    void outputPowerUpdate(quint8);
     void cmdDataArrival(quint8, quint8, quint8, quint8*);
 public slots:
     void processDataArrival(quint8, quint8, quint8, quint8*);
