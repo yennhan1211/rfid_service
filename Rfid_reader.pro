@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    rfid_impinj.cpp
+    rfid_impinj.cpp \
+    logwindow.cpp
 
 HEADERS  += mainwindow.h \
     rfid_impinj.h \
-    rfid_impinj_cmd.h
+    rfid_impinj_cmd.h \
+    logwindow.h
 
 FORMS    += mainwindow.ui
 

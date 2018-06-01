@@ -7,6 +7,9 @@
 #include <QNetworkSession>
 #include <QNetworkProxy>
 #include <QDateTime>
+#include <QTimer>
+#include <QThread>
+#include <logwindow.h>
 
 class command
 {
@@ -57,6 +60,8 @@ public:
     QString getPCID();
     void updateAntennaInfo(epc_tag&);
 
+    QDateTime finalTimeCaptured;
+
     int rssiToDbm();
     float freqToHz();
 
@@ -96,6 +101,7 @@ private:
     QString keyID;
     QString pcID;
 
+
     QList<antenna> antHolder;
 //    bool friend operator !=(const epc_tag &tag1, const epc_tag &tag2);
 //    friend std::ostream& operator << (std::ostream &out, const epc_tag &tag);
@@ -127,13 +133,16 @@ private:
 //    return out;
 //}
 
-class rfid_Impinj : public QObject
+class rfid_Impinj : public QThread
 {
     Q_OBJECT
 public:
     explicit rfid_Impinj(QObject *parent = 0);
+    ~rfid_Impinj();
     bool connectReader(QString, quint16);
     bool disconnectReader();
+
+    void setLog(logwindow *log);
 
     int getVersion();
     int getTemp();
@@ -146,6 +155,8 @@ public:
 
     void setIntervalSwitchAnt(int);
     int getIntervalSwitchAnt();
+
+    int setReadFastSwitching(bool enable);
 
     void setRepeatRound(int);
     int getRepeatRound();
@@ -160,15 +171,17 @@ public:
     float freqToHz(quint8);
 
     bool getConnectStatus();
+
+    void clearErrorFlag();
 private:
     QTcpSocket * tcpSocket;
-    QDataStream in;
-
-    QNetworkSession *networkSession;
-    QNetworkProxy proxy;
+    logwindow *mLog;
+    QTimer requestTimer;
 
     bool connectStatus;
     QByteArray buffHolder;
+
+    void printLog(const QString&);
 
     // Fast switch ant attribute
     int interval;
@@ -183,7 +196,7 @@ private:
     quint8 addr;
     quint8 cmd;
 
-
+    bool errorFlag;
 
 signals:
     void tagFound(epc_tag*);
@@ -199,6 +212,9 @@ public slots:
     void processBuf();
     void processError(QAbstractSocket::SocketError socketError);
     void connectionStatus();
+
+private slots:
+    void requestTimerTimeOut();
 };
 
 #endif // RFID_IMPINJ_H
