@@ -13,6 +13,6 @@ logwindow::~logwindow()
 
 void logwindow::appendMsg(const QString &msg)
 {
-    mView->appendPlainText(msg);
+//    mView->appendPlainText(msg);
 //    mView->verticalScrollBar()->setValue(mView->verticalScrollBar()->maximum());
 }

@@ -4,6 +4,8 @@
 #include <QSqlRelationalDelegate>
 #include <QDebug>
 #include <QFileDialog>
+#include <QSqlResult>
+#include <QHeaderView>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -23,46 +25,19 @@ MainWindow::MainWindow(QWidget *parent) :
     mRunning = false;
     requestInterval = 1000; // default 1s
     delayStartTime = 1000; // default 1s delay
-    operationMode = TESTMODE; // test mode
+    operationMode = NORMALMODE; // test mode
 
+    ui->cbbMode->setVisible(false);
 
     enableUI(false);
 
     createDb();
 
-//    QSqlDatabase mCacheDb = QSqlDatabase::database("cached");
-
-    qDebug() << mCacheDb.connectionName() << mCacheDb.isOpen() << mCacheDb.lastError().text();
-    qDebug() << mCacheDb.tables();
-    //setup tableview
-    mItem = new myItem(ui->tableView);
-//    model = new myModel(this);
-    model = new QSqlQueryModel(this);
-
-    racerModel = new QSqlTableModel;
-    racerModel->database().database("cached");
-
-    racerModel->setTable("taginfo");
-    racerModel->setEditStrategy(QSqlTableModel::OnManualSubmit);
-    racerModel->select();
-
-
     mainTableViewSetHeader();
 
-    modelPrepare = new QSqlQueryModel;
-
-//    collectTableViewSetHeader();
-
-    qDebug() << model->query().lastError().text();
-
-    ui->prepareTableView->setModel(racerModel);
-
-//    ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-//    ui->tableView->setEditTriggers(QAbstractItemView::DoubleClicked);
-    ui->tableView->setModel(model);
-//    ui->tableView->setEditTriggers(QAbstractItemView::AllEditTriggers);
-    ui->tableView->setItemDelegate(new QSqlRelationalDelegate(this));
-//    ui->tableView->show();
+//    ui->prepareTableView->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+//    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+//    ui->tableView->horizontalHeader()->resizeSections(QHeaderView::Stretch);
 
     // connect signal
     oneShotStartTimer.setSingleShot(true);
@@ -84,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->cbbMode, SIGNAL(currentIndexChanged(QString)), this, SLOT(changeOperationMode(QString)));
     connect(ui->mainTab, SIGNAL(currentChanged(int)), this, SLOT(tabIndexChange(int)));
+    connect(this, SIGNAL(updateTable(QString)), this, SLOT(onUpdateTable(QString)));
 
     connect(myReader, SIGNAL(versionUpdated(QString)), ui->lbVersion, SLOT(setText(QString)));
     connect(myReader, SIGNAL(tempUpdated(QString)), ui->lbTemp, SLOT(setText(QString)));
@@ -126,7 +102,7 @@ int MainWindow::createDb()
 {
 
 //    QString dbName = "./test" + QString::number(QDateTime::currentMSecsSinceEpoch()) + ".db";
-     mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
+     QSqlDatabase mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
 //    db.setDatabaseName(dbName);
     mCacheDb.setDatabaseName(":memory:");
     qDebug() << mCacheDb.connectionName();
@@ -138,7 +114,6 @@ int MainWindow::createDb()
     }
 
     createTable();
-//    mCacheDb.close();
 
     return 0;
 }
@@ -146,7 +121,7 @@ int MainWindow::createDb()
 void MainWindow::createTable()
 {
     // create table if not exist
-    QSqlQuery query(mCacheDb);
+    QSqlQuery query;
 
     query.exec("create table if not exists taginfo (id integer primary key autoincrement,"
                "pccode varchar(4), epccode varchar(256), rssi int, freq real,antid int, timecapture datetime, deltatime int)");
@@ -156,26 +131,37 @@ void MainWindow::createTable()
     query.exec("create table if not exists record (id integer primary key autoincrement,startnumber int, surname varchar(128), tagid varchar(256),"
                "deltatime int)");
     qDebug() << "->>" << query.lastError().text();
-    qDebug() << mCacheDb.tables();
+    qDebug() << QSqlDatabase::database().tables();
 }
 
 void MainWindow::mainTableViewSetHeader()
 {
-    model->setQuery("select * from taginfo", mCacheDb);
+//    if(model != NULL) delete model;
+//    if(racerModel != NULL) delete racerModel;
+    model = new QSqlTableModel;
+    racerModel = new QSqlTableModel;
+
+    racerModel->setTable("racer");
+    racerModel->setEditStrategy(QSqlTableModel::OnFieldChange);
+    racerModel->select();
+    model->setTable("record");
     model->setHeaderData(0, Qt::Horizontal, QObject::tr("ID"));
-    model->setHeaderData(1, Qt::Horizontal, QObject::tr("PC"));
-    model->setHeaderData(2, Qt::Horizontal, QObject::tr("EPC"));
-    model->setHeaderData(3, Qt::Horizontal, QObject::tr("RSSI(dBm)"));
-    model->setHeaderData(4, Qt::Horizontal, QObject::tr("FREQ(MHz)"));
-    model->setHeaderData(5, Qt::Horizontal, QObject::tr("ANTENNA ID"));
-    model->setHeaderData(6, Qt::Horizontal, QObject::tr("TIME CAPTURED"));
-    model->setHeaderData(7, Qt::Horizontal, QObject::tr("DELTA TIME(ms)"));
-    model->query();
+    model->setHeaderData(1, Qt::Horizontal, QObject::tr("Start Number"));
+    model->setHeaderData(2, Qt::Horizontal, QObject::tr("Sur Name"));
+    model->setHeaderData(3, Qt::Horizontal, QObject::tr("Tag ID"));
+    model->setHeaderData(4, Qt::Horizontal, QObject::tr("Delta Time"));
+    model->select();
+
+    ui->tableView->setModel(model);
+    ui->prepareTableView->setModel(racerModel);
+
+    ui->prepareTableView->setEditTriggers(QAbstractItemView::AnyKeyPressed | QAbstractItemView::DoubleClicked);
+//    ui->tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 }
 
 void MainWindow::collectTableViewSetHeader()
 {
-    modelPrepare->setQuery("select * from racer", mCacheDb);
+    modelPrepare->setQuery("select * from racer");
     modelPrepare->setHeaderData(0, Qt::Horizontal, QObject::tr("Start number"));
     modelPrepare->setHeaderData(1, Qt::Horizontal, QObject::tr("Tag ID"));
     modelPrepare->setHeaderData(2, Qt::Horizontal, QObject::tr("Sur Name"));
@@ -301,7 +287,7 @@ void MainWindow::checkBoxHandler(bool isChecked)
 
 void MainWindow::tagFound(epc_tag * tag)
 {
-    qDebug () << "--->" << mRunning;
+    qDebug () << "--->" << operationMode;
     QString strQuery = "";
 //    if(!mRunning)return;
 
@@ -338,24 +324,33 @@ void MainWindow::tagFound(epc_tag * tag)
                                   .arg(mStartCaptureTime.msecsTo(tag->tagAnt->timeCaptured));
     } else if(operationMode == COLLECTTAGMODE){
         QHash<QString, epc_tag>::const_iterator i = tagsHolder.find(tag->getKeyID());
-
+        qDebug() << ">>" << tagsHolder.size() << tag->getKeyID();
         if (i == tagsHolder.end()) // not exist
         {
             tagsHolder.insert(tag->getKeyID(), *(tag));
-            strQuery = QString("insert into racer (tagid) values ('%1')").arg(tag->getKeyID());
+            {
+                QSqlQuery query;
+                QString selectStr = QString("select surname from racer where tagid = '%1'").arg(tag->getKeyID());
+                query.exec(selectStr);
+                qDebug() << query.lastError().text();
+                if(!query.next()){
+                    strQuery = QString("insert into racer (tagid) values ('%1')").arg(tag->getKeyID());
+                }
+            }
+
         }
     }
-//    QSqlDatabase mCacheDb = QSqlDatabase::database("cached");
-    qDebug() << strQuery;
-    QSqlQuery query(mCacheDb);
-    query.exec(strQuery);
-    model->setQuery("select * from taginfo", mCacheDb);
-    model->query();
-    racerModel->select();
+    if(strQuery != "") {
 
-    // emit reorder table
-    emit updateTable();
-
+        QSqlQuery query;
+        query.exec(strQuery);
+        qDebug() << "query " << strQuery << query.lastError().text();
+        if(operationMode == COLLECTTAGMODE)
+            racerModel->select();
+        // emit reorder table
+        if(operationMode == NORMALMODE)
+            emit updateTable(tag->getKeyID());
+    }
     if(tag != NULL){
         delete tag;
     }
@@ -412,12 +407,16 @@ void MainWindow::startCount()
 
     myReader->clearErrorFlag();
 
-    if(tagsHolder.size() > 0) {
-        tagsHolder.clear();
-        qDebug() << tagsHolder.size();
+    {
         QSqlQuery query;
         query.exec("delete from taginfo");
-        model->clear();
+        query.exec("delete from record");
+//        createTable();
+        model->select();
+    }
+
+    if(tagsHolder.size() > 0) {
+        tagsHolder.clear();
     }
 }
 
@@ -526,7 +525,17 @@ void MainWindow::tabIndexChange(int i)
 
 void MainWindow::on_btnCollectTag_clicked()
 {
-
+    qDebug() << "On on_btnCollectTag_clicked";
+    if(myReader->getConnectStatus()){
+        myReader->clearErrorFlag();
+        quint8 tmp[] = {
+            0xa0,0x0d,0x01,0x8a,0x00,0x01,
+            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a
+        };
+        tmp[12] = quint8(5);
+        tmp[13] = quint8(10);
+        qDebug() << myReader->sendCommand(tmp,sizeof(tmp)/sizeof(quint8));
+    }
 }
 
 void MainWindow::on_btnSave2File_clicked()
@@ -545,13 +554,14 @@ void MainWindow::on_btnSave2File_clicked()
                return;
         }
         qDebug() << fileName;
-        if(mCacheDb.isOpen())mCacheDb.close();
-//        QSqlDatabase::removeDatabase("cached");
-        mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
+
+        QSqlDatabase::removeDatabase(QSqlDatabase::database().connectionName());
+        QSqlDatabase mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
         mCacheDb.setDatabaseName(fileName);
         qDebug() << mCacheDb.open() << mCacheDb.isOpen();
         createTable();
         mainTableViewSetHeader();
+        tagsHolder.clear();
     }
 }
 
@@ -564,13 +574,40 @@ void MainWindow::on_btnResetReader_7_clicked()
            return;
     else {
         qDebug() << fileName;
-        if(mCacheDb.isOpen())mCacheDb.close();
-//        QSqlDatabase::removeDatabase("cached");
-        mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
+        QSqlDatabase::removeDatabase(QSqlDatabase::database().connectionName());
+        QSqlDatabase mCacheDb = QSqlDatabase::addDatabase("QSQLITE");
         mCacheDb.setDatabaseName(fileName);
         qDebug() << mCacheDb.open() << mCacheDb.isOpen();
         createTable();
         mainTableViewSetHeader();
+        tagsHolder.clear();
     }
+}
+
+void MainWindow::onUpdateTable(QString tagId)
+{
+    QSqlQuery query;
+    QString tagInfoStr = QString("select deltatime from taginfo where epccode = '%1'").arg(tagId);
+    QString reacerInfo = QString("select startnumber,surname from racer where tagid = '%1'").arg(tagId);
+    query.exec(tagInfoStr);
+    qDebug() << query.lastError().text();
+    int delta = 0;
+    int startnumber = 0;
+    QString name = "";
+    if(query.next()){
+        delta = query.value("deltatime").toInt();
+    }
+    query.exec(reacerInfo);
+    qDebug() << query.lastError().text();
+    if(query.next()){
+        startnumber = query.value("startnumber").toInt();
+        name = query.value("surname").toString();
+    }
+    QString strQuery = QString("insert into record (startnumber, surname, tagid, deltatime)"
+                               " values (%1,'%2','%3', %4)")
+                                .arg(startnumber).arg(name).arg(tagId).arg(delta);
+    query.exec(strQuery);
+    qDebug() << query.lastError().text();
+    model->select();
 }
 

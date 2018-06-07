@@ -82,7 +82,7 @@ public:
     ~MainWindow();
 
 signals:
-    void updateTable();
+    void updateTable(QString);
 
 private slots:
     void on_btnConDis_clicked();
@@ -119,6 +119,7 @@ private slots:
     void on_btnSave2File_clicked();
 
     void on_btnResetReader_7_clicked();
+    void onUpdateTable(QString);
 
 private:
     Ui::MainWindow *ui;
@@ -127,7 +128,7 @@ private:
 
 //    myModel *model;
     QSqlQueryModel *modelPrepare;
-    QSqlQueryModel *model;
+    QSqlTableModel *model;
     QSqlTableModel *racerModel;
     rfid_Impinj *myReader;
     logwindow *mLog;
@@ -138,8 +139,6 @@ private:
     QTimer readBasicInfoTimer;
 
     QHash<QString, epc_tag> tagsHolder;
-
-    QSqlDatabase mCacheDb;
 
     EoperationMode operationMode;
 

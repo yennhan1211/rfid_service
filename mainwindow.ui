@@ -51,12 +51,12 @@
       </property>
       <item>
        <property name="text">
-        <string>Test</string>
+        <string>Normal</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Normal</string>
+        <string>Test</string>
        </property>
       </item>
      </widget>
@@ -318,6 +318,19 @@ qproperty-alignment: AlignCenter;</string>
       </property>
       <property name="text">
        <string>Load database from file</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnClearRecord">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>165</y>
+        <width>101</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear</string>
       </property>
      </widget>
     </widget>
