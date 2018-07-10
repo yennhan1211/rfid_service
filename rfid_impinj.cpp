@@ -320,7 +320,7 @@ void rfid_Impinj::processDataArrival(quint8 addr, quint8 cmd, quint8 len, quint8
             qDebug() << "End of fast switch ant inventory";
         } else if(len == 2){
             errorFlag = true;
-//            qDebug() << "Ant " << QString::number(data[0]) << " is missing";
+            qDebug() << "Ant " << QString::number(data[0]) << " is missing";
             QString str = "";
             str.sprintf("Fast switch atenna failed due to antenna %d is missing", data[0]);
             printLog(str);
@@ -522,6 +522,8 @@ epc_tag::epc_tag(quint8 *buff, quint8 len)
     pc[0] = buff[1];
     pc[1] = buff[2];
 
+    readCount = 0;
+
     pcID.sprintf("%.2X%.2X", pc[0], pc[1]);
 
     epc_len = len - 4;
@@ -576,8 +578,17 @@ epc_tag::~epc_tag()
 }
 
 void epc_tag:: updateAntennaInfo(epc_tag& tag){
-    qDebug() << "updateAntennaInfo " << tag.tagAnt->ant_id;
+
     bool isExist = false;
+    if(readCount > 8)
+    {
+        return;
+    }
+    else
+    {
+        readCount++;
+    }
+    qDebug() << "updateAntennaInfo " << tag.tagAnt->ant_id;
     for(int i = 0; i < antHolder.length(); i++) { // only save for the first time that the antenna is captured by reader
         if(antHolder[i].ant_id == tag.tagAnt->ant_id){ // update ant
             isExist = true;

@@ -87,6 +87,7 @@ public:
     void updateStartTimePerTag(QDateTime& stime);
     antenna *tagAnt;
 private:
+    quint8 readCount;
     quint8 pc[2];
     quint8 rssi;
     quint8 freq;

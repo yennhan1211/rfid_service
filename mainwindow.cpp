@@ -248,12 +248,14 @@ void MainWindow::requestTimerTimeOut()
         int repeatimte = ui->leRepeat->text().toInt();
         quint8 tmp[] = {
             0xa0,0x0d,0x01,0x8a,0x00,0x01,
-            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a
+            0x01,0x00,0x02,0x00,0x03,0x00,0x00,0x0a
+//            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a
         };
         tmp[12] = quint8(sleepTimeAnt);
         tmp[13] = quint8(repeatimte);
         int ret = myReader->sendCommand(tmp,sizeof(tmp)/sizeof(quint8));
-        if(!ret) {
+        if(ret == -1) {
+            qDebug() << "Bad command " << ret;
             stopCount();
         }
     }
@@ -422,6 +424,7 @@ void MainWindow::startCount()
 
 void MainWindow::stopCount()
 {
+    qDebug() << "stop counting";
     killTimer(timerid);
     ui->btnStartTime->setText("START");
     mRunning = false;
@@ -530,7 +533,8 @@ void MainWindow::on_btnCollectTag_clicked()
         myReader->clearErrorFlag();
         quint8 tmp[] = {
             0xa0,0x0d,0x01,0x8a,0x00,0x01,
-            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a
+//            0x01,0x01,0x02,0x01,0x03,0x01,0x00,0x0a
+            0x01,0x00,0x02,0x00,0x03,0x00,0x00,0x0a
         };
         tmp[12] = quint8(5);
         tmp[13] = quint8(10);

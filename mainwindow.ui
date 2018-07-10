@@ -70,7 +70,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>10</string>
+       <string>1</string>
       </property>
      </widget>
      <widget class="QGroupBox" name="groupBox_2">
